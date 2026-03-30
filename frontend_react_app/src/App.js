@@ -1,5 +1,5 @@
 import React from "react";
-import TicTacToeSkill from "./skills/ticTacToe/TicTacToeSkill";
+import TicTacToeSkill from "./skills_external/ticTacToe/TicTacToeSkill";
 
 // PUBLIC_INTERFACE
 function App() {
