@@ -40,19 +40,29 @@ export default function App() {
 
   // PUBLIC_INTERFACE
   const handleSquareClick = (index) => {
-    // Ignore input after game ends.
-    if (isBoardLocked) return;
+    // Apply move in a single state transition derived from the latest state.
+    // This avoids any stale-closure issues if React batches updates.
+    setSquares((prevSquares) => {
+      const winnerNow = calculateWinner(prevSquares);
+      const isDrawNow = !winnerNow && prevSquares.every((sq) => sq !== null);
+      const isLockedNow = Boolean(winnerNow) || isDrawNow;
 
-    // Ignore invalid clicks on an occupied square.
-    if (squares[index] !== null) return;
+      // Ignore input after game ends.
+      if (isLockedNow) return prevSquares;
 
-    // Apply move then switch turns.
-    setSquares((prev) => {
-      const next = [...prev];
-      next[index] = xIsNext ? "X" : "O";
-      return next;
+      // Ignore invalid clicks on an occupied square.
+      if (prevSquares[index] !== null) return prevSquares;
+
+      const nextSquares = [...prevSquares];
+      nextSquares[index] = xIsNext ? "X" : "O";
+      return nextSquares;
     });
-    setXIsNext((prev) => !prev);
+
+    // Switch turns only if the move is valid (i.e., the square was empty and game not locked).
+    // We can infer validity from current visible state.
+    if (!isBoardLocked && squares[index] === null) {
+      setXIsNext((prev) => !prev);
+    }
   };
 
   // PUBLIC_INTERFACE
