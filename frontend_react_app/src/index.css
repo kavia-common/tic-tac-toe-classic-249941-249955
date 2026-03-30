@@ -5,10 +5,19 @@ body {
 
 body {
   margin: 0;
+  background: #070816;
+  color: #e9ecff;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Improve perceived keyboard accessibility by making focus-visible stand out if a component
+   forgets to define it. (Component styles still override as needed.) */
+:focus-visible {
+  outline: 2px solid rgba(39, 246, 255, 0.65);
+  outline-offset: 2px;
 }
 
 code {

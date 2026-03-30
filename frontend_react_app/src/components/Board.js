@@ -23,6 +23,7 @@ export default function Board({
       {squares.map((value, idx) => (
         <Square
           key={idx}
+          index={idx}
           value={value}
           onClick={() => onSquareClick(idx)}
           isWinning={winningLine.includes(idx)}
