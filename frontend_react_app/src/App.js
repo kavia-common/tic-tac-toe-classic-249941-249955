@@ -42,37 +42,46 @@ export default function App() {
   const currentPlayer = xIsNext ? "X" : "O";
 
   // PUBLIC_INTERFACE
+  const resetBoard = (nextXStarts) => {
+    /**
+     * Reset game deterministically.
+     * - Always uses a fresh board array (no shared references).
+     * - Sets who starts next explicitly.
+     */
+    setSquares(Array(9).fill(null));
+    setXIsNext(Boolean(nextXStarts));
+  };
+
+  // PUBLIC_INTERFACE
   const handleSquareClick = (index) => {
-    // Apply move in a single state transition derived from the latest state.
-    // This avoids any stale-closure issues if React batches updates.
+    /**
+     * Deterministic move handling:
+     * - Derive everything (locked state, whose turn, validity) from the latest state in functional updaters.
+     * - Toggle turn ONLY when we actually place a mark.
+     * This avoids stale closures/batched state updates causing incorrect turn switching.
+     */
     setSquares((prevSquares) => {
       const winnerNow = calculateWinner(prevSquares);
       const isDrawNow = !winnerNow && prevSquares.every((sq) => sq !== null);
       const isLockedNow = Boolean(winnerNow) || isDrawNow;
-
-      // Ignore input after game ends.
       if (isLockedNow) return prevSquares;
 
-      // Ignore invalid clicks on an occupied square.
       if (prevSquares[index] !== null) return prevSquares;
 
       const nextSquares = [...prevSquares];
       nextSquares[index] = xIsNext ? "X" : "O";
+
+      // Toggle turn in the same user action, but only when the move is valid.
+      setXIsNext((prev) => !prev);
       return nextSquares;
     });
-
-    // Switch turns only if the move is valid (i.e., the square was empty and game not locked).
-    // We can infer validity from current visible state.
-    if (!isBoardLocked && squares[index] === null) {
-      setXIsNext((prev) => !prev);
-    }
   };
 
   // PUBLIC_INTERFACE
-  const handleNewGame = () => {
-    setSquares(EMPTY_BOARD);
-    setXIsNext(true);
-  };
+  const handleNewGame = () => resetBoard(true);
+
+  // PUBLIC_INTERFACE
+  const handleReset = () => resetBoard(xIsNext);
 
   const resultTone = winner ? "win" : isDraw ? "draw" : "neutral";
 
@@ -134,6 +143,14 @@ export default function App() {
             </div>
 
             <div className="controls" role="group" aria-label="Game controls">
+              <button
+                type="button"
+                className="btn"
+                onClick={handleReset}
+                aria-label="Reset the board (keep the current starting player)"
+              >
+                Reset
+              </button>
               <button type="button" className="btn" onClick={handleNewGame} aria-label="Start a new game">
                 New game
               </button>
@@ -162,7 +179,10 @@ export default function App() {
               </div>
             </div>
 
-            <p className="hint">Tip: squares lock after they’re played. Start a new game to reset.</p>
+            <p className="hint">
+              Tip: <strong>Reset</strong> clears the board but keeps the current starter.{" "}
+              <strong>New game</strong> always starts with X.
+            </p>
           </footer>
         </section>
       </main>
