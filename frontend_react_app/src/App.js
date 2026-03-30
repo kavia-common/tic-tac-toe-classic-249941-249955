@@ -9,6 +9,12 @@ const EMPTY_BOARD = Array(9).fill(null);
  * PUBLIC_INTERFACE
  * Main application component for the Tic-Tac-Toe game.
  *
+ * Handles:
+ * - Core game state (board + current player)
+ * - Move handling (ignore invalid clicks)
+ * - Win/draw detection
+ * - Status messaging & winning-line highlighting
+ *
  * @returns {JSX.Element}
  */
 export default function App() {
@@ -19,24 +25,28 @@ export default function App() {
   const winner = winnerInfo?.winner ?? null;
   const winningLine = winnerInfo?.line ?? [];
 
-  const isDraw = useMemo(
-    () => !winner && squares.every((sq) => sq !== null),
-    [winner, squares]
-  );
-
-  const statusText = winner
-    ? `Winner: ${winner}`
-    : isDraw
-      ? "Draw!"
-      : `Next player: ${xIsNext ? "X" : "O"}`;
+  const isDraw = useMemo(() => {
+    // Draw only when board is full and there is no winner.
+    return !winner && squares.every((sq) => sq !== null);
+  }, [winner, squares]);
 
   const isBoardLocked = Boolean(winner) || isDraw;
 
+  const statusText = useMemo(() => {
+    if (winner) return `Winner: ${winner}`;
+    if (isDraw) return "Draw!";
+    return `Next player: ${xIsNext ? "X" : "O"}`;
+  }, [winner, isDraw, xIsNext]);
+
   // PUBLIC_INTERFACE
   const handleSquareClick = (index) => {
+    // Ignore input after game ends.
     if (isBoardLocked) return;
-    if (squares[index]) return;
 
+    // Ignore invalid clicks on an occupied square.
+    if (squares[index] !== null) return;
+
+    // Apply move then switch turns.
     setSquares((prev) => {
       const next = [...prev];
       next[index] = xIsNext ? "X" : "O";
